@@ -1,0 +1,2 @@
+# Sequencer
+Foot step sequencer
