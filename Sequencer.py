@@ -21,6 +21,7 @@ def firstTap():
 def furtherTap():
     #TODO record + play
 
+
 def doubleTap(first):
     # TODO first=true -> stop recording + keep playing
     # TODO first=false -> firstTap() + keep playing
