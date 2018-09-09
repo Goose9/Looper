@@ -2,8 +2,17 @@
 import time
 import sys
 import wave
+from Pedal import Pedal
+
+from multiprocessing import Process
 
 import pyaudio
+
+# global variables simulate foot pedals
+rec_playback = True
+record = False
+playback = True
+save = False
 
 
 def inputThread(queue):
@@ -38,7 +47,9 @@ def longTap():
     pass
 
 
-def testRecording(file_name, channels, format, rate, audio, chunk):
+def testRecording(file_name, channels, format, rate, chunk):
+    print("test recording...")
+    audio = pyaudio.PyAudio()
     rec_length = 5
     frames = []
 
@@ -56,6 +67,7 @@ def testRecording(file_name, channels, format, rate, audio, chunk):
     stream.close()
 
     writeSoundToFile(file_name, channels, format, rate, frames, audio)
+    return
 
 
 def writeSoundToFile(file_name, channels, format, rate, frames, audio):
@@ -67,10 +79,10 @@ def writeSoundToFile(file_name, channels, format, rate, frames, audio):
     waveFile.close()
 
 
-def testPlayback(file_name, audio, chunk):
-    wf = wave.open(file_name, 'rb')
+def testPlayback(file_name, chunk):
+    audio = pyaudio.PyAudio()
 
-    # create an audio object
+    wf = wave.open(file_name, 'rb')
 
     print("playback...")
     # open stream based on the wave object which has been input.
@@ -95,16 +107,44 @@ def testPlayback(file_name, audio, chunk):
 
 
 def main():
+    # TODO record while playback, overwrite same audio file
+    # TODO record without playback, different audio files
+
     format = pyaudio.paInt16
     channels = 2
     rate = 44100
     chunk = 1024
-    file_name = "test.wav"
 
-    audio = pyaudio.PyAudio()
+    process_pedal_dict = dict()
 
-    testRecording(file_name, channels, format, rate, audio, chunk)
-    testPlayback(file_name, audio, chunk)
+    while(1):
+        key = raw_input("Press 1, 2, 3 or 4 to simulate Pedal... ");
+        if key == "1" or key == "2" or key == "3" or key == "4":
+            if process_pedal_dict.has_key(key):
+                pass
+            else:
+                pedal = Pedal()
+                pedal.file_name = "pedal_" + key + ".wav"
+                process_pedal_dict.update({key: pedal})
+
+        # if (rec_playback or playback) and len(process_pedal_dict) > 0:
+        #     new_process = Process(target=testPlayback, args=(process_pedal_dict[pedal], chunk))
+        #     new_process.start()
+
+        file = process_pedal_dict[key].file_path + process_pedal_dict[key].file_name
+
+        if rec_playback or record:
+            new_process = Process(target=testRecording, args=(file, channels, format, rate, chunk))
+            new_process.start()
+            new_process.join()
+
+        if playback:
+            new_process = Process(target=testPlayback, args=(file, chunk))
+            new_process.start()
+
+
+        # testRecording(file_name, channels, format, rate, audio, chunk)
+        # testPlayback(file_name, audio, chunk)
 
 
 if __name__== "__main__":
