@@ -3,6 +3,7 @@ import time
 import sys
 import wave
 from Pedal import Pedal
+from GPIOtest import gpio
 
 from multiprocessing import Process
 
@@ -117,8 +118,15 @@ def main():
 
     process_pedal_dict = dict()
 
+    gpio_input = gpio()
+    new_process = Process(target=gpio_input.checkInput, args=())
+    new_process.start()
+
     while(1):
-        key = raw_input("Press 1, 2, 3 or 4 to simulate Pedal... ");
+        # key = raw_input("Press 1, 2, 3 or 4 to simulate Pedal... ");
+
+        key = gpio_input.pedal_idChange()
+
         if key == "1" or key == "2" or key == "3" or key == "4":
             if process_pedal_dict.has_key(key):
                 pass
